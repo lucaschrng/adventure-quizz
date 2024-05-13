@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Welcome to ChatApp</title>
+</head>
+<body>
+<h1>Welcome to ChatApp</h1>
+<input id="room-input" type="text" placeholder="Enter room name">
+<button onclick="joinRoom()">Join Room</button>
+<button onclick="createRoom()">Create Room</button>
+
+<script>
+  function joinRoom() {
+    const roomName = document.getElementById('room-input').value;
+    if (roomName) {
+      window.location.href = `/${roomName}`;
+    }
+  }
+
+  function createRoom() {
+    window.location.href = '/create-room';
+  }
+</script>
+</body>
+</html>

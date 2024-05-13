@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Room</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module">
+    document.addEventListener('DOMContentLoaded', function() {
+      const socket = io();
+      const messages = document.getElementById('messages');
+      const msgInput = document.getElementById('msg-input');
+      const sendBtn = document.getElementById('send-btn');
+
+      // Get the room ID that was injected into the page
+      const room = document.getElementById('room-id').textContent;
+
+      socket.emit('join-room', room);
+      console.log('Joining room:', room);
+
+      sendBtn.onclick = function() {
+        const message = msgInput.value;
+        if (message && room) {
+          socket.emit('message', room, message);
+          msgInput.value = '';  // Clear input after sending
+        }
+      };
+
+      socket.on('new-message', (message) => {
+        messages.innerText += `\n${message}`;
+      });
+
+      socket.on('user-joined', (room, id) => {
+        messages.innerText += `\nUser ${id} joined the room.`;
+      });
+    });
+  </script>
+</head>
+<body>
+<h1>Chat Room</h1>
+<div id="room-id" style="display:none;"><!--roomIdPlaceholder--></div>
+<input id="msg-input" type="text" placeholder="Type a message">
+<button id="send-btn">Send Message</button>
+<pre id="messages"></pre>
+</body>
+</html>
