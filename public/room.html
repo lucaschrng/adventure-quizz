@@ -3,42 +3,58 @@
 <head>
   <title>Chat Room</title>
   <script src="/socket.io/socket.io.js"></script>
-  <script type="module">
-    document.addEventListener('DOMContentLoaded', function() {
-      const socket = io();
-      const messages = document.getElementById('messages');
-      const msgInput = document.getElementById('msg-input');
-      const sendBtn = document.getElementById('send-btn');
-
-      // Get the room ID that was injected into the page
-      const room = document.getElementById('room-id').textContent;
-
-      socket.emit('join-room', room);
-      console.log('Joining room:', room);
-
-      sendBtn.onclick = function() {
-        const message = msgInput.value;
-        if (message && room) {
-          socket.emit('message', room, message);
-          msgInput.value = '';  // Clear input after sending
-        }
-      };
-
-      socket.on('new-message', (message) => {
-        messages.innerText += `\n${message}`;
-      });
-
-      socket.on('user-joined', (room, id) => {
-        messages.innerText += `\nUser ${id} joined the room.`;
-      });
-    });
-  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
 </head>
 <body>
-<h1>Chat Room</h1>
-<div id="room-id" style="display:none;"><!--roomIdPlaceholder--></div>
-<input id="msg-input" type="text" placeholder="Type a message">
-<button id="send-btn">Send Message</button>
-<pre id="messages"></pre>
+<div class="flex flex-col w-[50%] m-auto">
+  <div id="scores">
+
+  </div>
+  <h1 class="text-2xl text-zinc-800">Chat Room</h1>
+  <div id="room-id" class="hidden"><!--roomIdPlaceholder--></div>
+  <input id="msg-input" type="text" placeholder="Type a message" class="border border-zinc-300">
+  <button id="send-btn">Send Message</button>
+  <pre id="messages"></pre>
+</div>
+
+<div id="adminPanel" class="hidden p-4 m-auto w-full">
+  <h1 class="text-2xl text-zinc-800">Quiz Configuration</h1>
+  <form id="quizConfigForm" class="flex flex-col items-start m-auto w-full">
+    <label for="category" class="font-bold">Category:</label>
+    <select id="category" class="border border-zinc-500 p-1 rounded-sm"></select><br>
+
+    <label for="difficulty" class="font-bold">Difficulty:</label>
+    <select id="difficulty" class="border border-zinc-500 p-1 rounded-sm">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select><br>
+
+    <label for="type" class="font-bold">Type:</label>
+    <select id="type" class="border border-zinc-500 p-1 rounded-sm">
+      <option value="multiple">Multiple Choice</option>
+      <option value="boolean">True / False</option>
+    </select><br>
+
+    <label for="amount" class="font-bold">Number of Questions:</label>
+    <input type="number" id="amount" value="10" min="1" max="50" class="border border-zinc-500 p-1 rounded-sm"><br>
+
+    <button type="button" id="createQuiz" class="bg-sky-300 text-sky-700 py-1 px-2 border border-sky-700 rounded-sm">Start Quiz</button>
+  </form>
+</div>
+
+<div id="loader" class="w-full h-full bg-gray-700 bg-opacity-50 flex items-center justify-center hidden">
+  <div class="text-white text-lg font-semibold">Settings are being configured by the admin. Please wait...</div>
+</div>
+
+<div id="quizQuestionPanel" class="hidden p-4">
+  <div id="countdown" class="text-lg font-bold mb-2"></div>
+  <p id="question" class="text-lg mb-4"></p>
+  <div id="answers">
+
+  </div>
+</div>
+<script type="module" src="room.js" ></script>
 </body>
 </html>

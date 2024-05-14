@@ -16,6 +16,7 @@ const io = new Server(server, {
 });
 
 const port = 3000;
+const playerScores = {};
 
 app.use(express.static('public'));
 
@@ -29,9 +30,36 @@ function generateRoomId(length = 4) {
   return result;
 }
 
+async function fetchQuizData(config) {
+  const url = new URL('https://opentdb.com/api.php');
+  url.searchParams.set('amount', config.amount);
+  url.searchParams.set('category', config.category);
+  url.searchParams.set('difficulty', config.difficulty);
+  url.searchParams.set('type', config.type);
+
+  const response = await fetch(url);
+  const data = await response.json();
+  return data; 
+}
+
+
+
+function broadcastQuiz(room, quizData) {
+  let currentIndex = 0;
+  const intervalId = setInterval(() => {
+      if (currentIndex < quizData.results.length) {
+          io.to(room).emit('displayQuestion', quizData.results[currentIndex]);
+          currentIndex++;
+      } else {
+          clearInterval(intervalId);
+          io.to(room).emit('quizOver');
+      }
+  }, 20000); 
+}
+
 app.get('/create-room', (req, res) => {
   const roomId = generateRoomId();
-  res.redirect(`/${roomId}`);
+  res.redirect(`/${roomId}?admin=true`);
 });
 
 app.get('/:roomId', async (req, res) => {
@@ -50,6 +78,10 @@ io.on('connection', (socket) => {
 
   socket.on('join-room', (room) => {
     socket.join(room);
+    if (!playerScores[room]) {
+      playerScores[room] = {};
+    }
+    playerScores[room][socket.id] = 0;
     console.log(`User ${socket.id} joined room: ${room}`);
     socket.to(room).emit('user-joined', room, socket.id);
   });
@@ -60,6 +92,39 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    for (const room in playerScores) {
+      if (playerScores[room][socket.id] !== undefined) {
+        delete playerScores[room][socket.id];
+        break;
+      }
+    }
+  });
+
+  socket.on('startQuiz', async (room, config) => {
+    try {
+        const quizData = await fetchQuizData(config);
+        broadcastQuiz(room, quizData);
+
+    } catch (error) {
+        console.error('Failed to fetch quiz data:', error);
+        socket.to(room).emit('error', 'Failed to start quiz');
+    }
+  });
+
+  socket.on('answer', (data, room) => {
+    const { answer, correctAnswer, time, isCorrect } = data;
+    if (!playerScores[room] || !playerScores[room].hasOwnProperty(socket.id)) {
+        console.error(`No player score found for room: ${room} and user: ${socket.id}`);
+        return;
+    }
+    if (isCorrect) {
+        playerScores[room][socket.id] += 1;
+    } else {
+        playerScores[room][socket.id] -= 1;
+    }
+
+    console.log(`${socket.id} answered in room ${room}: ${isCorrect} at ${time}`);
+    io.to(room).emit('score-update', playerScores[room]);
   });
 });
 
