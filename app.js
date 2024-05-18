@@ -45,15 +45,30 @@ async function fetchQuizData(config) {
 
 function broadcastQuiz(room, quizData) {
   let currentIndex = 0;
-  const intervalId = setInterval(() => {
-    if (currentIndex < quizData.results?.length) {
-      io.to(room).emit('displayQuestion', quizData.results[currentIndex]);
-      currentIndex++;
-    } else {
-      clearInterval(intervalId);
-      io.to(room).emit('quizOver');
+  function sendNextQuestion() {
+    if (currentIndex < quizData.results.length) {
+      let countdownTime = 20;
+      const countdownInterval = setInterval(() => {
+        if (countdownTime === 20) {
+          io.to(room).emit('displayQuestion', quizData.results[currentIndex]);
+          currentIndex++;
+        }
+
+        io.to(room).emit('countdown', countdownTime);
+        countdownTime--;
+
+        if (countdownTime < 0) {
+          clearInterval(countdownInterval);
+          if (currentIndex < quizData.results.length) {
+            setTimeout(sendNextQuestion, 1000);
+          } else {
+            io.to(room).emit('quizOver');
+          }
+        }
+      }, 1000);
     }
-  }, 20000);
+  }
+  sendNextQuestion();
 }
 
 app.get('/create-room', (req, res) => {
@@ -102,7 +117,15 @@ io.on('connection', (socket) => {
   socket.on('startQuiz', async (room, config) => {
     try {
       const quizData = await fetchQuizData(config);
-      broadcastQuiz(room, quizData);
+      let countdownTime = 5;
+      const countdownInterval = setInterval(() => {
+        io.to(room).emit('countdown', countdownTime);
+        countdownTime--;
+        if (countdownTime < 0) {
+          clearInterval(countdownInterval);
+          broadcastQuiz(room, quizData);
+        }
+      }, 1000);
     } catch (error) {
       console.error('Failed to fetch quiz data:', error);
       socket.to(room).emit('error', 'Failed to start quiz');

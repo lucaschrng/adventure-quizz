@@ -1,5 +1,11 @@
 const createQuizButton = document.querySelector('#createQuiz')
 
+function decodeHtmlEntities(text) {
+  const textArea = document.createElement('textarea');
+  textArea.innerHTML = text;
+  return textArea.value;
+}
+
 function fetchCategories() {
   fetch('https://opentdb.com/api_category.php')
     .then(response => response.json())
@@ -23,7 +29,7 @@ function submitAnswer(room, answer, correctAnswer) {
     feedbackElement.textContent = 'Correct!';
     feedbackElement.classList.add('text-green-500');
   } else {
-    feedbackElement.textContent = `Wrong! The correct answer was ${correctAnswer}.`;
+    feedbackElement.textContent = `Wrong! The correct answer was ${decodeHtmlEntities(correctAnswer)}.`;
     feedbackElement.classList.add('text-red-500');
   }
   document.getElementById('answers').appendChild(feedbackElement);
@@ -100,15 +106,13 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   socket.on('countdown', function (timeLeft) {
-    if (timeLeft === 0) {
-      const messageLi = document.createElement('li');
-      messageLi.textContent = 'Starting quiz...';
-      messages.appendChild(messageLi);
-    } else {
-      const messageLi = document.createElement('li');
-      messageLi.textContent = `Starting in ${timeLeft} seconds...`;
-      messages.appendChild(messageLi);
-    }
+    const countdownElement = document.getElementById('countdown');
+    const countdownLobbyElement = document.getElementById('countdown-lobby');
+    const countdownAdminElement = document.getElementById('countdown-admin');
+
+    countdownElement.textContent = `${timeLeft} seconds left...`;
+    countdownLobbyElement.textContent = `${timeLeft} seconds left...`;
+    countdownAdminElement.textContent = `${timeLeft} seconds left...`;
   });
 
   socket.on('displayQuestion', (question) => {
@@ -119,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const questionElement = document.getElementById('question');
     const answersElement = document.getElementById('answers');
-    questionElement.textContent = question.question;
+    questionElement.textContent = decodeHtmlEntities(question.question);
     answersElement.innerHTML = '';
 
     const allAnswers = [...question.incorrect_answers];
@@ -127,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     allAnswers.forEach((answer) => {
       const button = document.createElement('button');
-      button.innerText = answer;
+      button.innerText = decodeHtmlEntities(answer);
       button.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded block mb-2';
       button.addEventListener('click', () => {
         submitAnswer(room, answer, question.correct_answer)
