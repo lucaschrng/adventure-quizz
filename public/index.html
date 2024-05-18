@@ -1,14 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Welcome to ChatApp</title>
+  <title>Welcome to AdventureQuizz</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-<h1>Welcome to ChatApp</h1>
-<input id="room-input" type="text" placeholder="Enter room name">
-<button onclick="joinRoom()">Join Room</button>
-<button onclick="createRoom()">Create Room</button>
-
+<h1 class="text-3xl text-center p-4">Welcome to Adventure Quiz! 🕵️ </h1>
+<div class="flex flex-col gap-8">
+  <input id="room-input" type="text" placeholder="Enter room name" class="border border-zinc-500 w-1/2 m-auto p-2 rounded-lg font-thin">
+  <div class="flex flex-col w-1/2 m-auto gap-4">
+    <button onclick="joinRoom()" class="relative inline-block px-4 py-2 font-medium group">
+      <span class="absolute inset-0 w-full h-full transition duration-200 ease-out transform translate-x-1 translate-y-1 bg-black group-hover:-translate-x-0 group-hover:-translate-y-0"></span>
+      <span class="absolute inset-0 w-full h-full bg-white border-2 border-black group-hover:bg-black"></span>
+      <span class="relative text-black group-hover:text-white">Join room</span>
+    </button>
+    <button onclick="createRoom()" class="relative inline-block px-4 py-2 font-medium group">
+      <span class="absolute inset-0 w-full h-full transition duration-200 ease-out transform translate-x-1 translate-y-1 bg-black group-hover:-translate-x-0 group-hover:-translate-y-0"></span>
+      <span class="absolute inset-0 w-full h-full bg-white border-2 border-black group-hover:bg-black"></span>
+      <span class="relative text-black group-hover:text-white">Create room</span>
+    </button>
+  </div>
+  <!-- <button onclick="joinRoom()" class="">Join Room</button> -->
+  <!-- <button  class="">Create Room</button> -->
+  <footer class="absolute bottom-0 w-full p-2">
+    <p class="text-center">Adventure quizz | Made with ❤️ by <a href="https://github.com/lucaschrng">@lucaschrng</a> & <a href="https://github.com/FannyGautierr">@FannyGautierr</a> </p>
+  </footer>
+</div>
 <script>
   function joinRoom() {
     const roomName = document.getElementById('room-input').value;
