@@ -1,9 +1,9 @@
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import {createServer} from 'http';
+import {Server} from 'socket.io';
 import cors from 'cors';
-import { v4 as uuidv4 } from 'uuid';
-import { readFile } from 'fs/promises';
+import {v4 as uuidv4} from 'uuid';
+import {readFile} from 'fs/promises';
 
 const app = express();
 app.use(cors());
@@ -39,22 +39,21 @@ async function fetchQuizData(config) {
 
   const response = await fetch(url);
   const data = await response.json();
-  return data; 
+  return data;
 }
-
 
 
 function broadcastQuiz(room, quizData) {
   let currentIndex = 0;
   const intervalId = setInterval(() => {
-      if (currentIndex < quizData.results.length) {
-          io.to(room).emit('displayQuestion', quizData.results[currentIndex]);
-          currentIndex++;
-      } else {
-          clearInterval(intervalId);
-          io.to(room).emit('quizOver');
-      }
-  }, 20000); 
+    if (currentIndex < quizData.results?.length) {
+      io.to(room).emit('displayQuestion', quizData.results[currentIndex]);
+      currentIndex++;
+    } else {
+      clearInterval(intervalId);
+      io.to(room).emit('quizOver');
+    }
+  }, 20000);
 }
 
 app.get('/create-room', (req, res) => {
@@ -76,18 +75,18 @@ app.get('/:roomId', async (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  socket.on('join-room', (room) => {
+  socket.on('join-room', (room, username) => {
     socket.join(room);
     if (!playerScores[room]) {
       playerScores[room] = {};
     }
-    playerScores[room][socket.id] = 0;
-    console.log(`User ${socket.id} joined room: ${room}`);
-    socket.to(room).emit('user-joined', room, socket.id);
+    playerScores[room][socket.id] = {score: 0, username};
+    console.log(`User ${username} (${socket.id}) joined room: ${room}`);
+    socket.to(room).emit('user-joined', room, socket.id, username);
   });
 
-  socket.on('message', (room, message) => {
-    io.to(room).emit('new-message', message);
+  socket.on('message', (room, {message, username}) => {
+    io.to(room).emit('new-message', {message, username});
   });
 
   socket.on('disconnect', () => {
@@ -102,25 +101,24 @@ io.on('connection', (socket) => {
 
   socket.on('startQuiz', async (room, config) => {
     try {
-        const quizData = await fetchQuizData(config);
-        broadcastQuiz(room, quizData);
-
+      const quizData = await fetchQuizData(config);
+      broadcastQuiz(room, quizData);
     } catch (error) {
-        console.error('Failed to fetch quiz data:', error);
-        socket.to(room).emit('error', 'Failed to start quiz');
+      console.error('Failed to fetch quiz data:', error);
+      socket.to(room).emit('error', 'Failed to start quiz');
     }
   });
 
   socket.on('answer', (data, room) => {
-    const { answer, correctAnswer, time, isCorrect } = data;
+    const {answer, correctAnswer, time, isCorrect} = data;
     if (!playerScores[room] || !playerScores[room].hasOwnProperty(socket.id)) {
-        console.error(`No player score found for room: ${room} and user: ${socket.id}`);
-        return;
+      console.error(`No player score found for room: ${room} and user: ${socket.id}`);
+      return;
     }
     if (isCorrect) {
-        playerScores[room][socket.id] += 1;
+      playerScores[room][socket.id] += 1;
     } else {
-        playerScores[room][socket.id] -= 1;
+      playerScores[room][socket.id] -= 1;
     }
 
     console.log(`${socket.id} answered in room ${room}: ${isCorrect} at ${time}`);

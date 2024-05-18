@@ -4,19 +4,12 @@
   <title>Chat Room</title>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  
-</head>
-<body>
-<div class="flex flex-col w-[50%] m-auto">
-  <div id="scores">
 
-  </div>
-  <h1 class="text-2xl text-zinc-800">Chat Room</h1>
-  <div id="room-id" class="hidden"><!--roomIdPlaceholder--></div>
-  <input id="msg-input" type="text" placeholder="Type a message" class="border border-zinc-300">
-  <button id="send-btn">Send Message</button>
-  <pre id="messages"></pre>
-</div>
+</head>
+<body
+  class="grid"
+  style="grid-template-columns: 1fr min-content; height: 100vh;"
+>
 
 <div id="adminPanel" class="hidden p-4 m-auto w-full">
   <h1 class="text-2xl text-zinc-800">Quiz Configuration</h1>
@@ -40,7 +33,9 @@
     <label for="amount" class="font-bold">Number of Questions:</label>
     <input type="number" id="amount" value="10" min="1" max="50" class="border border-zinc-500 p-1 rounded-sm"><br>
 
-    <button type="button" id="createQuiz" class="bg-sky-300 text-sky-700 py-1 px-2 border border-sky-700 rounded-sm">Start Quiz</button>
+    <button type="button" id="createQuiz" class="bg-sky-300 text-sky-700 py-1 px-2 border border-sky-700 rounded-sm">
+      Start Quiz
+    </button>
   </form>
 </div>
 
@@ -55,6 +50,30 @@
 
   </div>
 </div>
-<script type="module" src="room.js" ></script>
+
+<div class="flex flex-col w-96 h-full p-2">
+  <div class="bg-gray-200 h-full w-full flex flex-col p-4 rounded">
+    <div id="scores">
+
+    </div>
+    <h1 class="text-2xl text-zinc-800">Room Chat</h1>
+    <div class="px-2 py-1 bg-white rounded mt-2 grid gap-1 mb-4 ">
+      <label for="username-input" class="font-medium">Username</label>
+      <input type="text" id="username-input" class="border border-zinc-300 py-1 px-2 rounded w-full mb-2">
+    </div>
+    <ul id="messages" class="h-full"></ul>
+    <form id="message-form" class="flex items-center">
+      <input id="msg-input" type="text" placeholder="Type a message" class="border border-zinc-300 py-1 px-2 rounded w-full">
+      <button id="send-btn" type="submit" class="flex items-center justify-center p-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+        <path d="M3.105 2.288a.75.75 0 0 0-.826.95l1.414 4.926A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95 28.897 28.897 0 0 0 15.293-7.155.75.75 0 0 0 0-1.114A28.897 28.897 0 0 0 3.105 2.288Z" />
+      </svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<div id="room-id" class="hidden"><!--roomIdPlaceholder--></div>
+<script type="module" src="room.js"></script>
 </body>
 </html>
